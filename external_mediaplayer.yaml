@@ -1,0 +1,12 @@
+voice_assistant:
+  microphone: mic_i2s
+  on_tts_end:
+    - homeassistant.service:
+        service: media_player.play_media
+        data:
+          entity_id: media_player.beelink_vlc_2
+          media_content_type: music
+        data_template:
+          media_content_id: "{{ my_url }}"
+        variables:
+          my_url: return x;
