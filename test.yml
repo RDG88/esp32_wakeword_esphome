@@ -1,0 +1,95 @@
+#GPIO # on ESP32-D1 mini
+####### Mic INMP441
+# 3V3 # 3.3v
+# GND # ground
+#  21 # WS
+#  17 # SCK
+#  23 # SD
+####### Speaker (DAC/Amplifier) MAX98357a
+# VCC # 5v
+# GND # ground
+#  21 # LRC (or LRCLK)
+#  17 # BCLK
+#  16 # DIN
+####### Button (any)
+# GND # ground
+#  22 # button
+#
+# REMEMBER TO REPLACE THE API KEY WITH YOUR OWN - and change the name & friendly name of the device ;)
+
+esphome:
+  name: esphome-web-e7c448
+  friendly_name: ESP32D1-Notifier
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+api:
+  encryption:
+    key: "QOv11vJiZQeYwycW1VazP5xBmGuRKT1AdhPxZt86bnI="
+
+ota:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "Esphome-Web-F1D734"
+    password: "8qrKcUO9erk0"
+
+captive_portal:  
+
+i2s_audio:
+    i2s_lrclk_pin: GPIO21 # (LRC)
+    i2s_bclk_pin: GPIO17 # (BCLK)
+
+media_player:
+  - platform: i2s_audio
+    id: media_out
+    name: ''
+    dac_type: external
+    i2s_dout_pin: GPIO16 #(DIN)
+    mode: mono
+
+speaker:
+  - platform: i2s_audio
+    id: assist_speaker
+    dac_type: external
+    i2s_dout_pin: GPIO16
+    mode: mono
+
+microphone:
+  - platform: i2s_audio
+    adc_type: external
+    pdm: false
+    id: mic_i2s
+    i2s_din_pin: GPIO23 #(SD)
+    bits_per_sample: 32bit
+
+
+
+
+voice_assistant:
+  speaker: assist_speaker
+  microphone: mic_i2s
+  use_wake_word: true
+
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: GPIO00
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: Boot Switch
+    internal: true
+    on_press:
+      - voice_assistant.start:
+    on_release:
+      - voice_assistant.stop:
