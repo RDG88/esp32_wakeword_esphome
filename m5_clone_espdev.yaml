@@ -1,0 +1,88 @@
+esphome:
+  name: esphome-web-e7c448
+  friendly_name: ESP32D1-Notifier
+  min_version: 2023.10.0
+  on_boot:
+    - priority: -100
+      then:
+        - wait_until: api.connected
+        - delay: 1s
+        - if:
+            condition:
+              switch.is_on: use_wake_word
+            then:
+              - voice_assistant.start_continuous:
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "...="
+
+ota:
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+i2s_audio:
+  i2s_lrclk_pin: GPIO33 # (LRC)
+  i2s_bclk_pin: GPIO19 # (BCLK)
+
+speaker:
+  - platform: i2s_audio
+    id: spk
+    dac_type: external
+    i2s_dout_pin: GPIO22
+    mode: mono
+
+microphone:
+  - platform: i2s_audio
+    id: echo_microphone
+    i2s_din_pin: GPIO23 #Echo
+    adc_type: external
+    pdm: false
+
+voice_assistant:
+  microphone: echo_microphone
+  id: va
+  noise_suppression_level: 2
+  auto_gain: 31dBFS
+  volume_multiplier: 2.0
+  vad_threshold: 3
+  speaker: spk
+
+switch:
+  - platform: template
+    name: Use wake word
+    id: use_wake_word
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+    on_turn_on:
+      - lambda: id(va).set_use_wake_word(true);
+      - if:
+          condition:
+            not:
+              - voice_assistant.is_running
+          then:
+            - voice_assistant.start_continuous
+
+    on_turn_off:
+      - voice_assistant.stop
+      - lambda: id(va).set_use_wake_word(false);
+
+external_components:
+  - source: github://pr#5230
+    components:
+      - esp_adf
+    refresh: 0s
+
+esp_adf:
