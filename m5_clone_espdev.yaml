@@ -6,13 +6,13 @@ esphome:
     - priority: -100
       then:
         - wait_until: api.connected
-        - delay: 1s
+        - delay: 15s
         - if:
             condition:
               switch.is_on: use_wake_word
             then:
               - voice_assistant.start_continuous:
-
+              
 esp32:
   board: esp32dev
   framework:
